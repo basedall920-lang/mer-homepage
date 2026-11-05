@@ -51,8 +51,9 @@
       const applyButton=node('button','job-apply-btn','この求人に応募する →');
       applyButton.type='button';
       applyButton.addEventListener('click',()=>{
-        document.getElementById('mer-apply-job-id').value=job.id;
-        document.getElementById('mer-apply-job-label').textContent=`${job.company_name || '掲載企業'} / ${job.title || '募集情報'}`;
+     
+document.getElementById('apply-job-label').textContent=`${job.company_name || '掲載企業'} / ${job.title || '募集情報'}`;
+
         document.getElementById('apply').classList.remove('mer-hidden');
         document.getElementById('mer-application-feedback').textContent='';
         document.getElementById('apply').scrollIntoView({behavior:'smooth',block:'start'});
