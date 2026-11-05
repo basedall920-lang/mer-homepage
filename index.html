@@ -97,7 +97,10 @@ document.getElementById('apply-job-label').textContent=`${job.company_name || '�
       feedback.classList.remove('error');feedback.textContent='送信しています…';
       const data=Object.fromEntries(new FormData(form).entries());
       delete data['cf-turnstile-response'];
-      data.type=kind;data.turnstile_token=token;
+     
+if(kind==='application') data.job_id=document.getElementById('mer-apply-job-id').value.trim();
+
+     data.type=kind;data.turnstile_token=token;
       try{
         const abort=new AbortController();const timer=setTimeout(()=>abort.abort(),20000);
         let response;
