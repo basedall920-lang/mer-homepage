@@ -52,6 +52,8 @@
       applyButton.type='button';
       applyButton.addEventListener('click',()=>{
      
+document.getElementById('mer-apply-job-id').value = job.id;
+
 document.getElementById('apply-job-label').textContent=`${job.company_name || '掲載企業'} / ${job.title || '募集情報'}`;
 
         document.getElementById('apply').classList.remove('mer-hidden');
