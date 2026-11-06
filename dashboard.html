@@ -1,0 +1,193 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MER | 管理ダッシュボード</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f2f5fa;color:#18243a;font-family:Arial,sans-serif}
+header{background:#122440;color:white;padding:20px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+h1{font-size:21px;margin:0}
+button{cursor:pointer;border:0;border-radius:9px;padding:12px 16px;font-weight:bold}
+header button{background:white;color:#122440}
+main{max-width:1100px;margin:auto;padding:22px 15px}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.card,.panel{background:white;border-radius:15px;padding:20px;box-shadow:0 3px 15px #00000009}
+.card strong{display:block;font-size:32px;margin-top:10px;color:#2479c7}
+.card span{font-size:13px;color:#64748b}
+.panel{margin-top:20px}
+h2{font-size:19px}
+nav{display:flex;gap:8px;flex-wrap:wrap;margin-top:22px}
+nav button{background:#e1e9f4;color:#172b4b}
+nav button.active{background:#2479c7;color:white}
+.item{padding:16px 0;border-bottom:1px solid #e5eaf0}
+.item:last-child{border:0}
+.item strong{display:block;margin-bottom:7px}
+.item small{color:#64748b}
+.item p{white-space:pre-wrap;overflow-wrap:anywhere}
+#status{padding:14px 0;color:#52627a}
+.hidden{display:none}
+@media(max-width:600px){
+.cards{grid-template-columns:1fr 1fr}
+.card{padding:15px}
+.card strong{font-size:27px}
+}
+</style>
+</head>
+<body>
+<header>
+<h1>MER ADMIN</h1>
+<button id="logout">ログアウト</button>
+</header>
+
+<main>
+<p id="status">管理者権限を確認しています...</p>
+
+<section id="dashboard" class="hidden">
+<h2>管理ダッシュボード</h2>
+
+<div class="cards">
+<div class="card"><span>求人件数</span><strong id="jobsCount">-</strong></div>
+<div class="card"><span>応募件数</span><strong id="appsCount">-</strong></div>
+<div class="card"><span>問い合わせ件数</span><strong id="inquiriesCount">-</strong></div>
+</div>
+
+<nav>
+<button class="active" data-tab="jobs">求人一覧</button>
+<button data-tab="apps">応募者一覧</button>
+<button data-tab="inquiries">問い合わせ</button>
+</nav>
+
+<div class="panel">
+<h2 id="sectionTitle">求人一覧</h2>
+<div id="records">読み込み中...</div>
+</div>
+</section>
+</main>
+
+<script type="module">
+import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
+
+const SUPABASE_URL = "https://blpjbqrwfuwaaitoraib.supabase.co";
+const SUPABASE_KEY = "sb_publishable_4AeMtLbC9eOyOCe8FwIuuA_qDA26qXI";
+
+const supabase = createClient(SUPABASE_URL,SUPABASE_KEY);
+const status = document.getElementById("status");
+const dashboard = document.getElementById("dashboard");
+const records = document.getElementById("records");
+
+let store = {jobs:[],apps:[],inquiries:[]};
+
+function escapeHTML(value){
+  return String(value ?? "").replace(/[&<>"']/g,c=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",
+    '"':"&quot;","'":"&#39;"
+  })[c]);
+}
+
+async function init(){
+  const {data:{user},error} = await supabase.auth.getUser();
+
+  if(error || !user){
+    location.replace("admin.html");
+    return;
+  }
+
+  const {data:admin,error:adminError} = await supabase
+    .from("mer_admins")
+    .select("user_id")
+    .eq("user_id",user.id)
+    .maybeSingle();
+
+  if(adminError || !admin){
+    status.textContent="管理者権限がありません。";
+    await supabase.auth.signOut();
+    return;
+  }
+
+  dashboard.classList.remove("hidden");
+  status.textContent="管理者としてログイン中";
+
+  await loadData();
+}
+
+async function loadData(){
+  const tables=[
+    ["jobs","mer_jobs"],
+    ["apps","mer_applications"],
+    ["inquiries","mer_inquiries"]
+  ];
+
+  let errors=[];
+
+  for(const [key,table] of tables){
+    const {data,error}=await supabase.from(table).select("*").limit(100);
+    if(error){
+      errors.push(table+": "+error.message);
+      store[key]=[];
+    }else{
+      store[key]=data || [];
+    }
+  }
+
+  document.getElementById("jobsCount").textContent=store.jobs.length;
+  document.getElementById("appsCount").textContent=store.apps.length;
+  document.getElementById("inquiriesCount").textContent=store.inquiries.length;
+
+  if(errors.length){
+    status.textContent="一部のデータを取得できませんでした："+errors.join(" / ");
+  }
+
+  showTab("jobs");
+}
+
+function showTab(tab){
+  document.querySelectorAll("[data-tab]").forEach(button=>{
+    button.classList.toggle("active",button.dataset.tab===tab);
+  });
+
+  const titles={
+    jobs:"求人一覧",
+    apps:"応募者一覧",
+    inquiries:"問い合わせ一覧"
+  };
+
+  document.getElementById("sectionTitle").textContent=titles[tab];
+
+  const items=store[tab];
+
+  if(!items.length){
+    records.textContent="表示できるデータがありません。";
+    return;
+  }
+
+  records.innerHTML=items.map(item=>{
+    const fields=Object.entries(item).filter(([key])=>
+      !["id","user_id"].includes(key)
+    );
+
+    return '<div class="item">'+fields.map(([key,value])=>
+      '<p><strong>'+escapeHTML(key)+'</strong>'+
+      escapeHTML(typeof value==="object" ? JSON.stringify(value) : value)+
+      '</p>'
+    ).join("")+'</div>';
+  }).join("");
+}
+
+document.querySelectorAll("[data-tab]").forEach(button=>{
+  button.addEventListener("click",()=>showTab(button.dataset.tab));
+});
+
+document.getElementById("logout").addEventListener("click",async()=>{
+  await supabase.auth.signOut();
+  location.replace("admin.html");
+});
+
+init().catch(error=>{
+  status.textContent="エラー："+error.message;
+});
+</script>
+</body>
+</html>
