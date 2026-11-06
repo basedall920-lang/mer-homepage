@@ -220,6 +220,61 @@ document.getElementById("addJobBtn").addEventListener("click", () => {
   form.style.display = form.style.display === "none" ? "block" : "none";
 });
 
+document.getElementById("saveJobBtn").addEventListener("click", async () => {
+  const title = document.getElementById("jobTitle").value.trim();
+  const location = document.getElementById("jobLocation").value.trim();
+  const salary = document.getElementById("jobSalary").value.trim();
+  const description = document.getElementById("jobDescription").value.trim();
+
+  if (!title) {
+    alert("求人タイトルを入力してください");
+    return;
+  }
+
+  const button = document.getElementById("saveJobBtn");
+  button.disabled = true;
+
+  try {
+    const { data: { user }, error: authError } =
+      await supabase.auth.getUser();
+
+    if (authError || !user) {
+      throw new Error("ログインし直してください");
+    }
+
+    const { data: admin, error: adminError } = await supabase
+      .from("mer_admins")
+      .select("user_id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (adminError || !admin) {
+      throw new Error("管理者権限がありません");
+    }
+
+    const { error } = await supabase
+      .from("mer_jobs")
+      .insert({
+        title,
+        location,
+        salary,
+        description,
+        is_published: false
+      });
+
+    if (error) throw error;
+
+    alert("求人を下書き保存しました！");
+    document.getElementById("jobForm").style.display = "none";
+    await loadData();
+
+  } catch (error) {
+    alert("保存エラー：" + error.message);
+  } finally {
+    button.disabled = false;
+  }
+});
+
 document.getElementById("logout").addEventListener("click",async()=>{
   await supabase.auth.signOut();
   location.replace("admin.html");
