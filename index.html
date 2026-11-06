@@ -103,7 +103,7 @@ document.getElementById('apply-job-label').textContent=`${job.company_name || '�
       delete data['cf-turnstile-response'];
      
 if(kind==='application') data.job_id=document.getElementById('mer-apply-job-id').value.trim();
-
+if(kind==='application') alert('送信ID確認：' + JSON.stringify(data.job_id));
      data.type=kind;data.turnstile_token=token;
       try{
         const abort=new AbortController();const timer=setTimeout(()=>abort.abort(),20000);
