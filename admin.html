@@ -1,0 +1,78 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MER 管理者ログイン</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f3f6fa;
+      color: #172334;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+    }
+    .panel {
+      background: white;
+      width: 100%;
+      max-width: 420px;
+      padding: 36px 24px;
+      border-radius: 16px;
+      box-shadow: 0 12px 36px #14243a15;
+    }
+    h1 { margin: 0 0 8px; font-size: 26px; }
+    p { color: #64748b; margin-bottom: 28px; }
+    label { display: block; margin: 18px 0 8px; }
+    input {
+      width: 100%;
+      padding: 14px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    button {
+      width: 100%;
+      margin-top: 26px;
+      padding: 15px;
+      border: 0;
+      border-radius: 8px;
+      background: #1767b2;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .note { font-size: 13px; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <main class="panel">
+    <h1>MER ADMIN</h1>
+    <p>株式会社MER 管理者専用ページ</p>
+    <form id="login-form">
+      <label for="email">メールアドレス</label>
+      <input id="email" type="email" autocomplete="username" required>
+
+      <label for="password">パスワード</label>
+      <input id="password" type="password" autocomplete="current-password" required>
+
+      <button type="submit">ログイン</button>
+    </form>
+    <p class="note" id="status">管理者以外は利用できません。</p>
+  </main>
+
+  <script>
+    document.getElementById('login-form')
+      .addEventListener('submit', function(event) {
+        event.preventDefault();
+        document.getElementById('status').textContent =
+          '画面の準備ができました。認証機能は次のSTEPで接続します。';
+      });
+  </script>
+</body>
+</html>
