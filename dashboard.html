@@ -172,9 +172,32 @@ function showTab(tab){
       '<p><strong>'+escapeHTML(key)+'</strong>'+
       escapeHTML(typeof value==="object" ? JSON.stringify(value) : value)+
       '</p>'
-    ).join("")+'</div>';
+   
+).join("")+
+(tab==="jobs"
+  ? '<button type="button" class="edit-job" data-job-id="'+escapeHTML(item.id)+'">編集</button>'
+  : "")+
+'</div>';
+
   }).join("");
 }
+
+function getJobById(jobId) {
+  return store.jobs.find(job => String(job.id) === String(jobId));
+}
+
+document.getElementById("records").addEventListener("click", event => {
+  const button = event.target.closest(".edit-job");
+  if (!button) return;
+
+  const job = getJobById(button.dataset.jobId);
+  if (!job) {
+    alert("求人が見つかりません");
+    return;
+  }
+
+  alert("編集する求人：" + job.title);
+});
 
 document.querySelectorAll("[data-tab]").forEach(button=>{
   button.addEventListener("click",()=>showTab(button.dataset.tab));
