@@ -62,7 +62,19 @@ nav button.active{background:#2479c7;color:white}
 
 <div class="panel">
 <h2 id="sectionTitle">求人一覧</h2>
-<div id="records">読み込み中...</div>
+
+<button id="addJobBtn" type="button">＋ 求人を追加</button>
+
+<div id="jobForm" style="display:none; margin:20px 0; padding:20px; background:#f2f5fa; border-radius:12px;">
+  <h3>求人を追加</h3>
+  <input id="jobTitle" placeholder="求人タイトル" style="width:100%;padding:12px;margin-bottom:10px;">
+  <input id="jobLocation" placeholder="勤務地" style="width:100%;padding:12px;margin-bottom:10px;">
+  <input id="jobSalary" placeholder="給与" style="width:100%;padding:12px;margin-bottom:10px;">
+  <textarea id="jobDescription" placeholder="仕事内容" style="width:100%;padding:12px;margin-bottom:10px;"></textarea>
+  <button id="saveJobBtn" type="button">求人を保存</button>
+</div>
+
+  <div id="records">読み込み中...</div>
 </div>
 </section>
 </main>
@@ -201,6 +213,11 @@ document.getElementById("records").addEventListener("click", event => {
 
 document.querySelectorAll("[data-tab]").forEach(button=>{
   button.addEventListener("click",()=>showTab(button.dataset.tab));
+});
+
+document.getElementById("addJobBtn").addEventListener("click", () => {
+  const form = document.getElementById("jobForm");
+  form.style.display = form.style.display === "none" ? "block" : "none";
 });
 
 document.getElementById("logout").addEventListener("click",async()=>{
