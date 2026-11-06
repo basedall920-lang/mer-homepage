@@ -66,13 +66,58 @@
     <p class="note" id="status">管理者以外は利用できません。</p>
   </main>
 
-  <script>
-    document.getElementById('login-form')
-      .addEventListener('submit', function(event) {
-        event.preventDefault();
-        document.getElementById('status').textContent =
-          '画面の準備ができました。認証機能は次のSTEPで接続します。';
+
+<script type="module">
+import { createClient } from
+  'https://esm.sh/@supabase/supabase-js@2';
+
+const SUPABASE_URL = 'https://blpjbqrwfuwaaitoraib.supabase.co/rest/v1/';
+const SUPABASE_KEY = 'sb_publishable_4AeMtLbC9eOyOCe8FwIuuA_qDA26qXI';
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+const form = document.getElementById('login-form');
+const status = document.getElementById('status');
+const button = form.querySelector('button');
+
+form.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  button.disabled = true;
+  status.textContent = 'ログイン確認中...';
+
+  try {
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+
+    const { data, error } =
+      await supabase.auth.signInWithPassword({
+        email,
+        password
       });
-  </script>
+
+    if (error) throw error;
+
+    const { data: admin, error: adminError } = await supabase
+      .from('mer_admins')
+      .select('user_id')
+      .eq('user_id', data.user.id)
+      .maybeSingle();
+
+    if (adminError || !admin) {
+      await supabase.auth.signOut();
+      throw new Error('管理者権限がありません。');
+    }
+
+    status.textContent = '管理者ログイン成功！';
+    status.style.color = 'green';
+
+  } catch (error) {
+    status.textContent = 'ログイン失敗：' + error.message;
+    status.style.color = 'red';
+  } finally {
+    button.disabled = false;
+  }
+});
+</script>
+
 </body>
 </html>
